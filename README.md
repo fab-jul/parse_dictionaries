@@ -69,8 +69,9 @@ three keys. Example:
 }
 ```
 
-`definitions` are just definitions of all words. `links` contains links
+- `definitions` are just definitions of all words.
+- `links` contains links
 to definitions, if a word in the book does not have it's own definition.
-`scores` is a crude estimate for how likely it is that the reader knows
+- `scores` is a crude estimate for how likely it is that the reader knows
 a word, see the `_get_scores` in `extract.py`.
 
