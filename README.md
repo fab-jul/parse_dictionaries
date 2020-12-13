@@ -33,7 +33,7 @@ python reverse_data.py \
   <img src='assets/dictionary_myoutput.png' width="70%"/>
 </div>
 
-## Extracting words and definitions from a book
+## Extracting words and definitions from a book with `extract.py`
 
 If you want to split a book into all its words and look them all up,
 you can use `extract.py`. This relies on `nltk` to properly get definitions,
