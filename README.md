@@ -53,16 +53,18 @@ three keys. Example:
    "house": "<d:entry xmlns:d=...",
    "related": "<d:entry xmlns:d=...",
    "rod": "<d:entry xmlns:d=...",
-   ...
+   "...": "..."
  },
  "links": {
    "vitals": "vital"
+   "...": "..."
  },
  "scores": {
    "cozen": 0.5,
    "house": 1.0,
    "related": 10.0,
-   "rod": 20.0
+   "rod": 20.0,
+   "...": "..."
  }
 }
 ```
