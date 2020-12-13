@@ -1,5 +1,14 @@
 """
-Parse apple dictionaries.
+Parse Apple dictionaries given as Body.data files.
+
+The function that does the heavy lifting is _parse. Overview:
+
+- The files are just ZIPs of XML entries concatenated with some headers
+  inbetween
+- We greedily try to find the ZIPs and extract the XML
+- Some XML parsing is implemented to find interesting stuff (derivatives for
+  example).
+
 """
 import argparse
 import contextlib
@@ -8,7 +17,7 @@ import os
 import pickle
 import shutil
 import zlib
-from typing import Dict
+from typing import Dict, List, Tuple
 
 import lxml.etree as etree
 
@@ -152,30 +161,6 @@ def wrap_in_tag(f, tag, attr=None):
   f.write(f'</{tag}>')
 
 
-def pickle_cache(p):
-  """Little helper decorator to store stuff in a pickle cache, used below."""
-  def decorator(func):
-    if os.path.isfile(p):
-      with open(p, 'rb') as f:
-        cache = pickle.load(f)
-    else:
-      cache = {}
-
-    def new_func(*args, **kwargs):
-      key = args[0]
-      if key not in cache:
-        res = func(*args, **kwargs)
-        cache[key] = res
-        with open(p, 'wb') as f:
-          pickle.dump(cache, f)
-      else:
-        print(f'Cached in {p}: {key}')
-      return cache[key]
-
-    return new_func
-  return decorator
-
-
 def parse(dictionary_path):
   print(f"Parsing {dictionary_path}...")
   entries_tuples = _parse(dictionary_path)
@@ -186,7 +171,7 @@ def parse(dictionary_path):
   return entries, links
 
 
-@pickle_cache('cache_links.pkl')
+@_pickle_cache('cache_links.pkl')
 def _get_links(p, entries):
   del p  # Only used for cache
   links = {}
@@ -205,9 +190,10 @@ def _get_links(p, entries):
   return links
 
 
-@pickle_cache('cache_parse.pkl')
-def _parse(p):
-  with open(p, 'rb') as f:
+@_pickle_cache('cache_parse.pkl')
+def _parse(dictionary_path) -> List[Tuple[str, str]]:
+  """Parse Body.data into a list of entries given as key, definition tuples."""
+  with open(dictionary_path, 'rb') as f:
     content_bytes = f.read()
   total_bytes = len(content_bytes)
 
@@ -242,7 +228,8 @@ def _parse(p):
       content_bytes = content_bytes[1:]
 
 
-def _split(input_bytes, verbose):
+def _split(input_bytes, verbose) -> Tuple[List[Tuple[str, str]],
+                                          bool]:
   """Split `input_bytes` into a list of tuples (name, definition)."""
   printv = print if verbose else lambda *a, **k: ...
 
@@ -250,7 +237,8 @@ def _split(input_bytes, verbose):
   input_bytes = input_bytes[4:]
 
   printv('Splitting...')
-  printv(f'{"index": <10}', f'{"bytes": <30}', f'{"as chars"}', '-' * 50, sep='\n')
+  printv(f'{"index": <10}', f'{"bytes": <30}', f'{"as chars"}',
+         '-' * 50, sep='\n')
 
   entries = []
   total_offset = 0
@@ -346,6 +334,29 @@ def _lazy(obj, ivar, creator):
     setattr(obj, ivar, creator())
   return getattr(obj, ivar)
 
+
+def _pickle_cache(p):
+  """Little helper decorator to store stuff in a pickle cache, used below."""
+  def decorator(func):
+    if os.path.isfile(p):
+      with open(p, 'rb') as f:
+        cache = pickle.load(f)
+    else:
+      cache = {}
+
+    def new_func(*args, **kwargs):
+      key = args[0]
+      if key not in cache:
+        res = func(*args, **kwargs)
+        cache[key] = res
+        with open(p, 'wb') as f:
+          pickle.dump(cache, f)
+      else:
+        print(f'Cached in {p}: {key}')
+      return cache[key]
+
+    return new_func
+  return decorator
 
 
 if __name__ == '__main__':
