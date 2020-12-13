@@ -13,7 +13,12 @@ from typing import Dict
 import lxml.etree as etree
 
 # New Oxford American Dictionary
-NOAD = '/System/Library/AssetsV2/com_apple_MobileAsset_DictionaryServices_dictionaryOSX/4094df88727a054b658681dfb74f23702d3c985e.asset/AssetData/New Oxford American Dictionary.dictionary/Contents/Resources/Body.data'
+NOAD = '/System/Library/AssetsV2/' \
+       'com_apple_MobileAsset_DictionaryServices_dictionaryOSX/' \
+       '4094df88727a054b658681dfb74f23702d3c985e.asset/' \
+       'AssetData/' \
+       'New Oxford American Dictionary.dictionary/' \
+       'Contents/Resources/Body.data'
 
 
 # Matches spans that give some meta info, like "literary", "informal", etc.
