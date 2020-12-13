@@ -19,9 +19,7 @@ NOAD='/System/Library/AssetsV2/ \
        New Oxford American Dictionary.dictionary/ \
        Contents/Resources/Body.data'
 
-python --dictionary_path $NOAD \
-       --lookup handle
-       --output_path lookup/lookup.html
+python --dictionary_path $NOAD --lookup handle --output_path lookup/lookup.html
 ```
 
 <div align="center">
