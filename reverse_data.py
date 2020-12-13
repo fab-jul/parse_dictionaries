@@ -211,7 +211,7 @@ def _parse(dictionary_path) -> List[Tuple[str, str]]:
       new_entries, stop = _split(res, verbose=first)
       entries += new_entries
       if stop:
-        return entries
+        break
       if i % 10 == 0:
         bytes_left = len(content_bytes)  # Approximately...
         progress = 1 - bytes_left / total_bytes
@@ -226,6 +226,8 @@ def _parse(dictionary_path) -> List[Tuple[str, str]]:
 
     except zlib.error:  # Current content_bytes is not a zipfile -> skip a byte.
       content_bytes = content_bytes[1:]
+
+  return entries
 
 
 def _split(input_bytes, verbose) -> Tuple[List[Tuple[str, str]],
