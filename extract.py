@@ -31,6 +31,9 @@ def main():
                                     'the text/book to parse.')
   p.add_argument('output_path', help='Path to where the output .zip should '
                                      'be stored.')
+  p.add_argument('--dictionary_path', default=reverse_data.NOAD,
+                 help="Path to a Body.data file. "
+                      f"Defaults to {reverse_data.NOAD}")
   p.add_argument('--input_encoding', '-i', default='utf-8',
                  help='Encoding of the file at INPUT_PATH.')
   flags = p.parse_args()
@@ -40,11 +43,13 @@ def main():
 
   extract_definitions_from_text(flags.input_path,
                                 flags.output_path,
+                                flags.dictionary_path,
                                 flags.input_encoding)
 
 
 def extract_definitions_from_text(input_path,
                                   output_path,
+                                  dictionary_path=reverse_data.NOAD,
                                   input_encoding='utf-8'):
   if not os.path.isfile(input_path):
     raise FileNotFoundError(input_path)
@@ -52,7 +57,7 @@ def extract_definitions_from_text(input_path,
   with codecs.open(input_path, mode='r', encoding=input_encoding) as f:
     text = f.read()
 
-  word_dict = reverse_data.WordDictionary.from_file(reverse_data.NOAD)
+  word_dict = reverse_data.WordDictionary.from_file(dictionary_path)
   word_counts = _get_word_counts(text, word_dict)
   scores = _get_scores(word_counts, word_dict)
 

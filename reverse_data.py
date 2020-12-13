@@ -62,13 +62,13 @@ CUSTOM_CSS = """
 
 def main():
   p = argparse.ArgumentParser()
-  p.add_argument('--dictionary_path', default=NOAD,
-                 help=f"Path to a Body.data file. Defaults to {NOAD}")
+  p.add_argument('--dictionary_path', default=noad,
+                 help=f"path to a body.data file. defaults to {noad}")
   p.add_argument('--lookup', nargs='+',
                  default=['vital', 'house', 'cozen'],
-                 help='Words to lookup')
+                 help='words to lookup')
   p.add_argument('--output_path', default='lookup/lookup.html',
-                 help='Where to save the words.')
+                 help='where to save the words.')
 
   flags = p.parse_args()
   save_definitions(flags.dictionary_path,
