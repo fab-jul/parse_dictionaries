@@ -56,7 +56,7 @@ three keys. Example:
    "...": "..."
  },
  "links": {
-   "vitals": "vital"
+   "vitals": "vital",
    "...": "..."
  },
  "scores": {
