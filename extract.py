@@ -1,7 +1,6 @@
 """
 
-
-Extract words out of a book and get their definitions.
+Extract words out of a book/text and get their definitions.
 
 """
 import argparse
