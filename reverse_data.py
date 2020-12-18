@@ -62,8 +62,8 @@ CUSTOM_CSS = """
 
 def main():
   p = argparse.ArgumentParser()
-  p.add_argument('--dictionary_path', default=noad,
-                 help=f"path to a body.data file. defaults to {noad}")
+  p.add_argument('--dictionary_path', default=NOAD,
+                 help=f"path to a body.data file. defaults to {NOAD}")
   p.add_argument('--lookup', nargs='+',
                  default=['vital', 'house', 'cozen'],
                  help='words to lookup')
@@ -169,6 +169,30 @@ def parse(dictionary_path):
   links = _get_links(dictionary_path, entries)
   print(f'Links: {len(links)}')
   return entries, links
+
+
+def _pickle_cache(p):
+  """Little helper decorator to store stuff in a pickle cache, used below."""
+  def decorator(func):
+    if os.path.isfile(p):
+      with open(p, 'rb') as f:
+        cache = pickle.load(f)
+    else:
+      cache = {}
+
+    def new_func(*args, **kwargs):
+      key = args[0]
+      if key not in cache:
+        res = func(*args, **kwargs)
+        cache[key] = res
+        with open(p, 'wb') as f:
+          pickle.dump(cache, f)
+      else:
+        print(f'Cached in {p}: {key}')
+      return cache[key]
+
+    return new_func
+  return decorator
 
 
 @_pickle_cache('cache_links.pkl')
@@ -335,30 +359,6 @@ def _lazy(obj, ivar, creator):
   if getattr(obj, ivar) is None:
     setattr(obj, ivar, creator())
   return getattr(obj, ivar)
-
-
-def _pickle_cache(p):
-  """Little helper decorator to store stuff in a pickle cache, used below."""
-  def decorator(func):
-    if os.path.isfile(p):
-      with open(p, 'rb') as f:
-        cache = pickle.load(f)
-    else:
-      cache = {}
-
-    def new_func(*args, **kwargs):
-      key = args[0]
-      if key not in cache:
-        res = func(*args, **kwargs)
-        cache[key] = res
-        with open(p, 'wb') as f:
-          pickle.dump(cache, f)
-      else:
-        print(f'Cached in {p}: {key}')
-      return cache[key]
-
-    return new_func
-  return decorator
 
 
 if __name__ == '__main__':

@@ -108,7 +108,7 @@ def _get_word_counts(text: str,
   Done by:
   1. Sanitize text by doing lower case and removing newlines.
   2. Use NLTK's tokenizer
-  3. Try to find the base by using NLTK's lemmanizer (i.e. houses -> house),
+  3. Try to find the base by using NLTK's lemmatizer (i.e. houses -> house),
      to increase chances of finding a word in the dictionary
   4. Count the occurences of words.
   """
@@ -130,7 +130,7 @@ def _get_word_counts(text: str,
   print('Counting...')
   word_counts = collections.Counter(words)
 
-  print('Lemmanizing...')
+  print('Lemmatizing...')
   lemma = WordNetLemmatizer()
   word_counts_lemmad = collections.defaultdict(int)
 
