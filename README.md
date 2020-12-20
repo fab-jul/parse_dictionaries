@@ -1,6 +1,10 @@
 # parse_dictionaries
 
 
+The following blog post contains some backgroud
+about this repo: 
+[Reverse-Engineering Apple Dictionary](https://fmentzer.github.io/posts/2020/dictionary/).
+
 ## Parsing with `reverse_data`.py
 
 
