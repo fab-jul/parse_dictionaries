@@ -121,12 +121,23 @@ def _get_word_counts(text: str,
   words = tokenize.word_tokenize(text)
 
   print('Pruning...')
-  words = (w.strip("'.-`") for w in words)
-  words = (w.replace("'s", '') for w in words)
-  words = (w for w in words if '.' not in w)
-  words = (w for w in words if len(w) > MIN_WORD_LEN)
-  words = (w for w in words if w and not all(c.isdigit() for c in w))
 
+  # Remove punctuation in tokens, as ntlk tokenizes for example "they'll" as
+  # [they, 'll]. The resulting "ll" will be ditched in a later stage.
+  # Also removes tokens that are just quotes, which turn into empty tokens,
+  # removed at the MIN_WORD_LEN stage below.
+  words = (w.strip("'.-`\"") for w in words)
+  # Ditches some genitives and third person singulars. In Python 3.9 this
+  # should be `removesuffix` but the `replace` works well enough in this context.
+  words = (w.replace("'s", '') for w in words)
+  # Removes abbreviations such as "e.g."
+  words = (w for w in words if '.' not in w)
+  # Removes most punctuation from the list, such as ",", ":", etc.,
+  # also removes empty tokens.
+  words = (w for w in words if len(w) > MIN_WORD_LEN)
+  # Removes all numbers
+  words = (w for w in words if w and not all(c.isdigit() for c in w))
+  
   print('Counting...')
   word_counts = collections.Counter(words)
 
