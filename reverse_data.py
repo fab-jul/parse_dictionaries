@@ -11,13 +11,14 @@ The function that does the heavy lifting is _parse. Overview:
 
 """
 import argparse
+import collections
 import contextlib
 import itertools
 import os
 import pickle
 import shutil
 import zlib
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Set
 
 import lxml.etree as etree
 
@@ -88,7 +89,7 @@ def save_definitions(dictionary_path, lookup_words, output_path):
     with wrap_in_tag(f, 'body'):
       for target in lookup_words:
         entry = word_dict[target]
-        t = etree.fromstring(entry.content)
+        t = entry.get_xml_tree()
         with wrap_in_tag(f, 'div', attr='class="div-entry"'):
           f.write(etree.tostring(t, pretty_print=True).decode())
 
@@ -126,6 +127,14 @@ class WordDictionary:
 
   def items(self):
     return self.d.items()
+
+  def add_links(self, links: Dict[str, str]):
+    for w, linked_w in links.items():
+      # Word already linked, so we should be able to find it.
+      if w in self.links:
+        continue
+      assert linked_w in self
+      self.links[w] = linked_w
 
   def filtered(self, words) -> 'WordDictionary':
     filtered_dict = {}
@@ -165,10 +174,22 @@ def parse(dictionary_path):
   print(f"Parsing {dictionary_path}...")
   entries_tuples = _parse(dictionary_path)
   print('Augmenting...')
-  entries = {k: Entry(k, e) for k, e in entries_tuples}
+  # Some definitions have multiple entries (for example foil in NOAD).
+  # Merge them here.
+  entries = merge_same_keys(entries_tuples)
   links = _get_links(dictionary_path, entries)
   print(f'Links: {len(links)}')
   return entries, links
+
+
+def merge_same_keys(entries_tuples: List[Tuple[str, str]]) -> Dict[str, 'Entry']:
+  entries = {}
+  for k, e in entries_tuples:
+    if k in entries:
+      entries[k].append_definition(e)
+    else:
+      entries[k] = Entry(k, e)
+  return entries
 
 
 def _pickle_cache(p):
@@ -318,10 +339,30 @@ class Entry:
     self.key = key
     self.content = content
 
+    # Set to true on the first call to `append_definition`.
+    # Used in get_xml_tree.
+    self._multi_definition = False
+
     # These are lazily populated as they take a while.
     self._xml = None
     self._info = None
     self._words_and_derivatives = None
+
+  def append_definition(self, content):
+    """Extend self.content with more XML.
+
+    The key here is to make sure the overall content is still valid XML
+    by wrapping the whole thing in a <div>, which is handled in `get_xml_tree`,
+    here we just set _multi_definition.
+    """
+    self._multi_definition = True
+    self.content += content
+
+  def get_xml_tree(self):
+    content = self.content
+    if self._multi_definition:
+      content = '<div>' + self.content + '</div>'
+    return etree.fromstring(content)
 
   def get_special(self, xpath, replace=None):
     matches = self.get_xml().xpath(xpath)
