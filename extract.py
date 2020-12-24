@@ -58,7 +58,10 @@ def extract_definitions_from_text(input_path,
     text = f.read()
 
   word_dict = reverse_data.WordDictionary.from_file(dictionary_path)
-  word_counts = _get_word_counts(text, word_dict)
+
+  word_counts, links = _get_word_counts(text, word_dict)
+  word_dict.add_links(links)
+
   scores = _get_scores(word_counts, word_dict)
 
   words = set(word_counts.keys())
@@ -102,7 +105,7 @@ def _get_scores(word_counts: Dict[str, int],
 
 
 def _get_word_counts(text: str,
-                     word_dict: reverse_data.WordDictionary) -> Dict[str, int]:
+                     word_dict: reverse_data.WordDictionary):
   """Given a text and a dictionary, split the text into words and return counts.
 
   Done by:
@@ -145,21 +148,42 @@ def _get_word_counts(text: str,
   lemma = WordNetLemmatizer()
   word_counts_lemmad = collections.defaultdict(int)
 
+  # We create a map from word_as_it_appears_in_book to the lemmad
+  # words to simplify lookup later. Note that it's not exactly
+  # word_as_it_appears_in_book due to the preprocessing above but oh well.
+  links = {}
+
   # Note: assume we have `word_counts` = {"belongs": 4 "belonging":3}
   # This results in sth like {"belong": 7, "belonging": 7} in the following.
   for w, count in word_counts.items():
-    possible_words = set()
+    possible_words = []
+    if w in word_dict:
+      possible_words.append(w)
+      word_is_in_dict = True
+    else:
+      word_is_in_dict = False
+
     for t in wordnet.POS_LIST:
       w_lemmad = lemma.lemmatize(w, pos=t)
-      if w_lemmad != w:
-        possible_words.add(w_lemmad)
-    if not possible_words:
-      possible_words = {w}
-    for possible_w in possible_words:
-      if possible_w in word_dict:
-        word_counts_lemmad[possible_w] += count
+      if w_lemmad != w and w_lemmad in word_dict:
+        possible_words.append(w_lemmad)
 
-  return word_counts_lemmad
+    # Neither the input word nor any lemmad forms are in the dictionary.
+    if not possible_words:
+      continue
+
+    # Input word is not in dictionary but some lemmad form is.
+    # We pick any random of the lemmad forms to make a link,
+    # hoping it's a good one.
+    if not word_is_in_dict:
+      links[w] = next(iter(possible_words))
+      print(f'Linking {w} -> {links[w]}')
+
+    # Build counts dict.
+    for possible_w in possible_words:
+      word_counts_lemmad[possible_w] += count
+
+  return word_counts_lemmad, links
 
 
 if __name__ == '__main__':
