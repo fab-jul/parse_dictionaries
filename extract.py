@@ -34,8 +34,9 @@ def main():
   p.add_argument('--dictionary_path', default=reverse_data.NOAD,
                  help="Path to a Body.data file. "
                       f"Defaults to {reverse_data.NOAD}")
-  p.add_argument('--input_encoding', '-i', default='utf-8',
-                 help='Encoding of the file at INPUT_PATH.')
+  p.add_argument('--input_encoding', '-i',
+                 help='Encoding of the file at INPUT_PATH. By default, try'
+                      'utf-8 and ISO-8859-1.')
   flags = p.parse_args()
   if not flags.output_path.endswith('.zip'):
     print('output_path should end in .zip')
@@ -50,28 +51,45 @@ def main():
 def extract_definitions_from_text(input_path,
                                   output_path,
                                   dictionary_path=reverse_data.NOAD,
-                                  input_encoding='utf-8'):
+                                  input_encoding=None):
   if not os.path.isfile(input_path):
     raise FileNotFoundError(input_path)
 
-  with codecs.open(input_path, mode='r', encoding=input_encoding) as f:
-    text = f.read()
 
   word_dict = reverse_data.WordDictionary.from_file(dictionary_path)
 
+  text = try_to_read(input_path, input_encoding)
   word_counts, links = _get_word_counts(text, word_dict)
   word_dict.add_links(links)
 
   scores = _get_scores(word_counts, word_dict)
 
   words = set(word_counts.keys())
-  _write_filtered_dict(words, word_dict, scores, output_path)
+  _write_filtered_dict(words, word_dict, scores, text, output_path)
   return list(word_counts.keys())
+
+
+def try_to_read(input_path, input_encoding=None) -> str:
+  if input_encoding:
+    input_encodings = [input_encoding]
+  else:
+    input_encodings = ['utf-8', 'ISO-8859-1', 'ascii']
+
+  for encoding in input_encodings:
+    try:
+      with codecs.open(input_path, mode='r', encoding=encoding) as f:
+        print(f'Decoded file with {encoding}.')
+        return f.read()
+    except UnicodeDecodeError as e:
+      print(f'Caught {e}')
+
+  raise ValueError("Hmm, file has unknown encoding.")
 
 
 def _write_filtered_dict(words: set,
                          word_dict: reverse_data.WordDictionary,
                          scores: Dict[str, float],
+                         text: str,
                          output_path: str):
   filtered_word_dict = word_dict.filtered(words)
   dict_of_str = {key: entry.content for key, entry in filtered_word_dict.items()}
@@ -84,6 +102,7 @@ def _write_filtered_dict(words: set,
   os.makedirs(os.path.dirname(output_path), exist_ok=True)
   with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     zf.writestr('master.json', json.dumps(master_object).encode('utf-8'))
+    zf.writestr('fulltext.txt', text.encode('utf-8'))
 
 
 def _get_scores(word_counts: Dict[str, int],
@@ -177,7 +196,6 @@ def _get_word_counts(text: str,
     # hoping it's a good one.
     if not word_is_in_dict:
       links[w] = next(iter(possible_words))
-      print(f'Linking {w} -> {links[w]}')
 
     # Build counts dict.
     for possible_w in possible_words:

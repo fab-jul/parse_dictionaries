@@ -76,7 +76,7 @@ def main():
                    flags.lookup,
                    flags.output_path)
 
-  
+
 def save_definitions(dictionary_path, lookup_words, output_path):
   if not dictionary_path.endswith('Body.data'):
     raise ValueError(f'Expected a Body.data file, got {dictionary_path}')
@@ -157,7 +157,7 @@ class WordDictionary:
 
   def __str__(self):
     return f'WordDcitionary({len(self.d)} definitions, ' \
-                            f'{len(self.links)} links)'
+           f'{len(self.links)} links)'
 
 
 @contextlib.contextmanager
@@ -310,7 +310,7 @@ def _split(input_bytes, verbose) -> Tuple[List[Tuple[str, str]],
     # Make sure we have a valid entry.
     assert (entry_text.startswith('<d:entry') and
             entry_text.endswith('</d:entry>')), \
-        f'ENTRY: {entry_text} \n REM: {input_bytes}'
+      f'ENTRY: {entry_text} \n REM: {input_bytes}'
 
     # The name of the definition is stored in the "d:title" attribute,
     # where "d" is the current domain, which we get from the nsmap - the
@@ -378,7 +378,7 @@ class Entry:
 
   def get_xml(self):
     if self._xml is None:
-      self._xml = etree.fromstring(self.content)
+      self._xml = self.get_xml_tree()
     return self._xml
 
   def get_words_and_derivaties(self):
