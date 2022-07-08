@@ -20,8 +20,14 @@ Here is what the built-in Dictionary app gives for "handle":
 And here is what this script gives (on a Mac), with
 
 ```bash
-# New Oxford American Dictionary
+#
 # NOTE: might be at a different location for you!
+# If so, you can find it using a glob, e.g.,
+# ls /System/Library/AssetsV2/ \
+       com_apple_MobileAsset_DictionaryServices_dictionaryOSX/*/*
+# then take the one that has `New Oxford American Dictionary`!
+#
+# New Oxford American Dictionary
 NOAD='/System/Library/AssetsV2/ \
        com_apple_MobileAsset_DictionaryServices_dictionaryOSX/ \
        4094df88727a054b658681dfb74f23702d3c985e.asset/ \
