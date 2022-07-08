@@ -24,7 +24,7 @@ And here is what this script gives (on a Mac), with
 # NOTE: might be at a different location for you!
 # If so, you can find it using a glob, e.g.,
 # ls /System/Library/AssetsV2/ \
-       com_apple_MobileAsset_DictionaryServices_dictionaryOSX/*/*
+#   com_apple_MobileAsset_DictionaryServices_dictionaryOSX/*/*
 # then take the one that has `New Oxford American Dictionary`!
 #
 # New Oxford American Dictionary
